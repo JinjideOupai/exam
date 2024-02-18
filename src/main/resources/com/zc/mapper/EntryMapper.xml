@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zc.mapper.EntryMapper">
+    <select id="getAll" resultMap="EntryResultMap">
+        select * from
+        edoc_entry e left join
+        edoc_category c on e.categoryId = c.cid
+        <if test="type!=null and type!=''">and c.name=#{type}</if>
+        WHERE c.name IS NOT NULL
+    </select>
+
+    <resultMap id="EntryResultMap" type="com.zc.pojo.Entry">
+        <id column="id" property="id" />
+        <result column="categoryId" property="category.cid" />
+        <result column="title" property="title" />
+        <result column="summary" property="summary" />
+        <result column="uploaduser" property="uploadUser" />
+        <result column="createdate" property="createDate" />
+        <association property="category" javaType="com.zc.pojo.Category">
+            <result column="cid" property="cid" />
+            <result column="name" property="name" />
+        </association>
+    </resultMap>
+
+    <select id="getType" resultType="category">
+        select * from edoc_category
+    </select>
+
+    <insert id="addEntry">
+        insert into edoc_entry values (null,#{categoryId},#{title},
+        #{summary},#{uploadUser},#{createDate})
+    </insert>
+    <select id="getEntry" resultType="entry">
+        select * from edoc_entry where id=#{id}
+    </select>
+    <update id="changeEntry">
+        update edoc_entry set title=#{title},summary=#{summary},uploadUser=#{uploadUser} where id=#{id}
+    </update>
+</mapper>

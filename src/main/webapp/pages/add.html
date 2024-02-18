@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        #app {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        span {
+            margin-right: 10px;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            padding: 5px 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background-color: #fff;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+</head>
+<body>
+<script src="/js/axios.min.js"></script>
+<script src="/js/vue.js"></script>
+<div id="app">
+    <div><span>文档名称</span>
+        <span><input type="text" v-model="title"></span>
+    </div>
+    <div><span>文档摘要</span>
+        <span><textarea v-model="summary"></textarea></span>
+    </div>
+    <div>
+        <span>类型</span>
+        <span>
+            <select name="category" v-model="categoryId">
+            <option v-for="item in types" :key="item.cid" :value="item.cid">{{ item.name }}</option>
+            </select>
+        </span>
+    </div>
+    <div><span>文档上传人</span>
+        <span><input type="text" v-model="uploadUser"></span>
+    </div>
+    <div><span>上传时间</span><span><input type="date" v-model="createDate"></span></div>
+    <div>
+        <button @click="sub">提交</button>
+    </div>
+</div>
+
+
+</body>
+<script>
+    new Vue({
+        el: "#app",
+        data() {
+            return {
+                types: [],
+                id: null,
+                title: '',
+                summary: '',
+                uploadUser: '',
+                createDate: '',
+                categoryId: '',
+                category: {},
+                eid: null
+
+            }
+        },
+        methods: {
+            getType() {
+                axios.get("/entry/getType").then(res => {
+                    this.types = res.data.data;
+                })
+            },
+            addEntry() {
+                axios.post("/entry/add/" + this.categoryId, {
+                    id: null, title: this.title, summary: this.summary,
+                    uploadUser: this.uploadUser, createDate: this.createDate
+                },)
+                    .then(res => {
+                        if (res.data.code === 200) {
+                            alert("添加成功")
+                        } else {
+                            alert("添加失败")
+                        }
+                    })
+            },
+            getEntry() {
+                axios.get("/entry/getEntry?id=" + this.eid).then(res => {
+                    this.createDate = res.data.data.createDate;
+                    this.summary = res.data.data.summary;
+                    this.title = res.data.data.title;
+                })
+            },
+            change() {
+                axios.post("/entry/change/" + this.eid, {
+                    id: null, title: this.title, summary: this.summary,
+                    uploadUser: this.uploadUser, createDate: this.createDate
+                }).then(res => {
+                    if (res.data.code === 200) {
+                        alert("修改成功")
+                    } else {
+                        alert("修改失败")
+                    }
+                })
+            },
+            sub() {
+                if (this.eid != "undefined") {
+                    this.change()
+                } else {
+                    this.addEntry()
+                }
+            }
+
+        },
+        created() {
+            this.getType();
+            const url = new URLSearchParams(window.location.search);
+            this.eid = url.get('id');
+            this.getEntry()
+
+        }
+    })
+</script>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        #app {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .select {
+            margin-bottom: 10px;
+        }
+
+        select, button {
+            padding: 5px 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background-color: #fff;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .nav_down {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        button:not(:last-child) {
+            margin-right: 5px;
+        }
+    </style>
+
+</head>
+<body>
+<div id="app">
+    <div class="select">
+        <span>
+             <select name="category" v-model="type">
+            <option value="">所有</option>
+            <option v-for="item in types" :key="item.cid" :value="item.name">{{ item.name }}</option>
+        </select>
+        </span>
+        <span>
+            <button @click="toAdd()">添加</button>
+        </span>
+    </div>
+    <table>
+        <thead>
+        <th>文档编号</th>
+        <th>文档名称</th>
+        <th>文档摘要</th>
+        <th>上传人</th>
+        <th>上传时间</th>
+        <th>操作</th>
+        </thead>
+        <tbody>
+        <tr v-for="(item,index) in pageInfo.list" :key="index">
+            <td>{{item.id}}</td>
+            <td>{{item.title}}</td>
+            <td>{{item.summary}}</td>
+            <td>{{item.uploadUser}}</td>
+            <td>{{ item.createDate | formatDate }}</td>
+            <td>
+                <button>删除</button>
+                <button @click="toAdd(item.id)">修改</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="nav_down">
+        <button @click="getPage(1)">首页</button>
+        <button @click="getPage(pageInfo.prePage)"
+                v-if="!pageInfo.isFirstPage">上一页
+        </button>
+        <button v-for="(item,index) in pageInfo.navigatepageNums"
+                @click="getPage(item)">
+            {{item}}
+        </button>
+        <button @click="getPage(pageInfo.nextPage)"
+                v-if="!pageInfo.isLastPage">下一页
+        </button>
+        <button @click="getPage(pageInfo.pages)">尾页</button>
+    </div>
+</div>
+<script src="/js/axios.min.js"></script>
+<script src="/js/vue.js"></script>
+<script>
+    new Vue({
+        el:"#app",
+        data() {
+            return {
+                pageInfo: {},
+                type: "",
+                types:[],
+            }
+        },
+        filters: {
+            formatDate: function(value) {
+                if (value) {
+                    const date = new Date(value);
+                    return date.toLocaleDateString(); // 将时间转换为年月日形式
+                }
+            }
+        },
+        methods:{
+            getPage(i) {
+                axios.get(`/entry/${i}/3?type=${this.type}`).then(res => {
+                    this.pageInfo = res.data.data;
+                    })
+            },
+            getType(){
+                axios.get("/entry/getType").then(res=>{
+                    this.types=res.data.data;
+                })
+            },
+            toAdd(id){
+                window.location.href = 'add?id=' + id;            }
+        },
+        created() {
+            this.getPage(1)
+            this.getType();
+        },
+        watch: {
+            type(newval) {
+                console.log(newval)
+                this.getPage(1);
+            }
+        }
+    })
+</script>
+</body>
+</html>
